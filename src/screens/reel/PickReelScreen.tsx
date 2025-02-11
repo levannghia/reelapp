@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert, Platform, PermissionsAndroid, TouchableOpacity, Image, ActivityIndicator, FlatList } from 'react-native'
+import { View, StyleSheet, Alert, Platform, PermissionsAndroid, TouchableOpacity, Image, ActivityIndicator, FlatList, Linking } from 'react-native'
 import React, { FC, useEffect, useState } from 'react'
 import CustomSafeAreaView from '../../components/global/CustomSafeAreaView'
 import CustomHeader from '../../components/global/CustomHeader'
@@ -135,6 +135,10 @@ const PickReelScreen: FC<VideoProp> = () => {
     permissionNotGranted,
   } = useGallery({pageSize: 30});
 
+  const handleOpenSetting = () => {
+    Linking.openSettings();
+  }
+
   const handleVideoSelect = async (data: any) => {
     const {uri} = data;
 
@@ -213,7 +217,7 @@ const PickReelScreen: FC<VideoProp> = () => {
           <CustomText variant="h6" fontFamily={FONTS.Medium}>
             We need permission to access your gallery.
           </CustomText>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleOpenSetting}>
             <CustomText
               variant="h6"
               fontFamily={FONTS.Medium}
