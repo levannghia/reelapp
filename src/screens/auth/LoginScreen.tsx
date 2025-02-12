@@ -1,5 +1,5 @@
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import React, { FC } from 'react'
 import Lottie from 'lottie-react-native'
 import CustomSafeAreaView from '../../components/global/CustomSafeAreaView'
 import Animation from '../../assets/animations/login.json'
@@ -13,7 +13,7 @@ import SocialButtonHorizontal from '../../components/global/SocialButtonHorizont
 import Icon from 'react-native-vector-icons/Ionicons'
 import { useAuthStore } from '../../state/userStore'
 
-const LoginScreen = () => {
+const LoginScreen: FC = () => {
 
   const {signInWithGoogle} = useAuthStore.getState();
 

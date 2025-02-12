@@ -14,6 +14,7 @@ interface userState {
     refetchUserLogin: () => void;
     checkUserNameAvailability: (username: string) => void;
     signInWithGoogle: () => void;
+    refetchUser: () => void;
 }
 
 interface RegisterData {
@@ -59,7 +60,7 @@ export const useAuthStore = create((
                     const res = await axios.post(CHECK_USERNAME, {
                         username
                     });
-                
+
                     return res.data.available;
                 } catch (error: any) {
                     // console.log(error);
@@ -90,6 +91,14 @@ export const useAuthStore = create((
                     })
                 } catch (err) {
                     console.log('Google Error --> ', err);
+                }
+            },
+            refetchUser: async () => {
+                try {
+                    const res = await appAxios.get('/user/profile');
+                    set({ user: res.data.user })
+                } catch (error: any) {
+                    console.log('PROFILE ->', error);
                 }
             }
         }),

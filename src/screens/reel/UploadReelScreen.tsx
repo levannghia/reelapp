@@ -7,6 +7,7 @@ import { Colors } from '../../constants/Colors'
 import { FONTS } from '../../constants/Fonts'
 import GradientButton from '../../components/global/GradientButton'
 import { goBack } from '../../utils/NavigationUtil'
+import { useUpload } from '../../context/UploadContext'
 
 interface uriData {
   thumb_uri: string;
@@ -17,6 +18,7 @@ const UploadReelScreen: FC = () => {
   const data = useRoute();
   const item = data?.params as uriData;
   const [caption, setCaption] = useState<string>('');
+  const {startUpload} = useUpload();
 
   return (
     <CustomSafeAreaView>
@@ -39,7 +41,7 @@ const UploadReelScreen: FC = () => {
           iconName="upload"
           onPress={() => {
             goBack();
-            // startUpload(item?.thumb_uri, item?.file_uri, caption);
+            startUpload(item?.thumb_uri, item?.file_uri, caption);
           }}
         />
       </ScrollView>

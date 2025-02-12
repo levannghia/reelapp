@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Platform, TouchableOpacity, Image, Alert, PermissionsAndroid, TextInput, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import CustomSafeAreaView from '../../components/global/CustomSafeAreaView'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import LinearGradient from 'react-native-linear-gradient'
@@ -22,7 +22,7 @@ interface initialData {
   userImage: string;
 }
 
-const RegisterScreen = () => {
+const RegisterScreen: FC = () => {
 
   const data = useRoute();
   const { checkUserNameAvailability } = useAuthStore();

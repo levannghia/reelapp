@@ -1,8 +1,8 @@
 import { View, Text } from 'react-native'
-import React from 'react'
+import React, { FC } from 'react'
 import CustomView from '../../components/global/CustomView'
 
-const HomeScreen = () => {
+const HomeScreen: FC = () => {
   return (
     <CustomView>
       <Text>HomeScreen</Text>
