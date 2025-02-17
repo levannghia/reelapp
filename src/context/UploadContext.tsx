@@ -5,6 +5,7 @@ import { useReelStore } from "../state/reelStore";
 import { navigate } from "../utils/NavigationUtil";
 import { Text } from "react-native-gesture-handler";
 import { Colors } from "../constants/Colors";
+// import { createReel } from "../services/reelAPI";
 
 interface UploadContextType {
     isUpload: boolean;
@@ -62,7 +63,7 @@ export const UploadProvider: FC<{ children: React.ReactNode }> = ({ children }) 
 
         const data = {
             videoUri: videoResponse,
-            thumb_uri: thumbnailResponse,
+            thumbUri: thumbnailResponse,
             caption: caption,
         }
 
