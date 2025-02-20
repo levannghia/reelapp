@@ -4,7 +4,7 @@ import { useAuthStore } from "./userStore";
 
 interface ReelStore {
     createReel: (data: any) => void;
-    fetchFeedReel: (offset: number, limit: number) => void
+    fetchFeedReel: (offset: number, limit: number) => Promise<any[]>;
 }
 
 const {refetchUser} = useAuthStore.getState();

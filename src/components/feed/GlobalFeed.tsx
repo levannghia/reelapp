@@ -6,6 +6,12 @@ import { useReelStore } from '../../state/reelStore';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated'
 import { navigate } from '../../utils/NavigationUtil';
 import ReelItemCard from './ReelItemCard';
+import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
+import StatsContainer from './StatsContainer';
+
+function clamp(val: any, min: any, max: any) {
+  return Math.min(Math.max(val, min), max);
+}
 
 const GlobalFeed: FC = () => {
   const [loading, setLoading] = useState(true);
@@ -18,11 +24,38 @@ const GlobalFeed: FC = () => {
   const zoomScale = useSharedValue(1);
   const zoomStartScale = useSharedValue(0);
 
+  const pinch = Gesture.Pinch().onStart(() => {
+    zoomStartScale.value = zoomScale.value;
+  }).onUpdate(event => {
+    zoomScale.value = clamp(zoomStartScale.value * event.scale, 0.3, Math.min(screenWidth / 100, screenHeight / 100))
+  }).runOnJS(true)
+
+  const pan = Gesture.Pan()
+    .minDistance(1)
+    .onStart(() => {
+      prevTranslationX.value = translateX.value;
+      prevTranslationY.value = translateY.value;
+    })
+    .onUpdate(event => {
+      const maxTranslateX = screenWidth - 10;
+      const maxTranslateY = screenHeight / 2 - 50;
+
+      translateX.value = clamp(
+        prevTranslationX.value + event.translationX,
+        -maxTranslateX,
+        maxTranslateX,
+      );
+      translateY.value = clamp(
+        prevTranslationY.value + event.translationY,
+        -maxTranslateY,
+        maxTranslateY,
+      );
+    })
+    .runOnJS(true);
+
   const fetchFeed = async () => {
     setLoading(true);
     const data = await fetchFeedReel(0, 16);
-    console.log(data);
-
     setData(data);
     setLoading(false)
   }
@@ -43,6 +76,11 @@ const GlobalFeed: FC = () => {
     };
   });
 
+  async function moveToFirst(arr: any[], index: number) {
+    await arr.unshift(arr.splice(index, 1)[0]);
+    return arr;
+  }
+  
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     const verticalShift = index % 2 === 0 ? -20 : 20;
     return (
@@ -51,11 +89,11 @@ const GlobalFeed: FC = () => {
           item={item}
           loading={loading}
           onPressReel={async () => {
-            // const copyarray = Array.from(data);
-            // const result = await moveToFirst(copyarray, index);
-            // navigate('FeedReelScrollScreen', {
-            //   data: result,
-            // });
+            const copyArray = Array.from(data);
+            const result = await moveToFirst(copyArray, index);
+            navigate('FeedReelScrollScreen', {
+              data: result,
+            });
           }}
         />
       </Animated.View>
@@ -63,36 +101,41 @@ const GlobalFeed: FC = () => {
   };
 
   return (
-    <ImageBackground
-      source={GlobalBg}
-      style={{ flex: 1, zIndex: -1 }}
-    >
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <View style={styles.gridContainer}>
-          {loading ? (
-            <FlatList
-              data={Array.from({ length: 16 })}
-              contentContainerStyle={styles.flatListContainer}
-              scrollEnabled={false}
-              pinchGestureEnabled
-              numColumns={4}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderItem}
-            />
-          ) : (
-            <FlatList
-              data={data}
-              contentContainerStyle={styles.flatListContainer}
-              scrollEnabled={false}
-              pinchGestureEnabled
-              numColumns={4}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={renderItem}
-            />
-          )}
-        </View>
-      </Animated.View>
-    </ImageBackground>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureDetector gesture={Gesture.Simultaneous(pan ,pinch)}>
+        <ImageBackground
+          source={GlobalBg}
+          style={{ flex: 1, zIndex: -1 }}
+        >
+          <Animated.View style={[styles.container, animatedStyle]}>
+            <StatsContainer/>
+            <View style={styles.gridContainer}>
+              {loading ? (
+                <FlatList
+                  data={Array.from({ length: 16 })}
+                  contentContainerStyle={styles.flatListContainer}
+                  scrollEnabled={false}
+                  pinchGestureEnabled
+                  numColumns={4}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={renderItem}
+                />
+              ) : (
+                <FlatList
+                  data={data}
+                  contentContainerStyle={styles.flatListContainer}
+                  scrollEnabled={false}
+                  pinchGestureEnabled
+                  numColumns={4}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={renderItem}
+                />
+              )}
+            </View>
+          </Animated.View>
+        </ImageBackground>
+      </GestureDetector>
+    </GestureHandlerRootView>
   )
 }
 
