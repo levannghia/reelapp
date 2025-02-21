@@ -159,7 +159,7 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
   )
 }
 
-const areEqual = (prevProps: VideoItemProps, nextProps: VideoItemProps) {
+const areEqual = (prevProps: VideoItemProps, nextProps: VideoItemProps) => {
   return (
     prevProps?.item?._id === nextProps?.item?._id && 
     prevProps?.isVisible === nextProps?.isVisible
