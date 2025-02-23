@@ -10,6 +10,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LottieView from 'lottie-react-native';
 import DoubleTapAnim from '../../assets/animations/heart.json';
+import ReelItem from './ReelItem';
 
 
 interface VideoItemProps {
@@ -56,7 +57,7 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
       handleTogglePlay();
     })
     .runOnJS(true);
-    const doubleTap = Gesture.Tap()
+  const doubleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(2)
     .onStart(() => {
@@ -87,7 +88,7 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
   return (
     <View style={styles.container}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <GestureDetector gesture={Gesture.Exclusive(doubleTap,singleTap)}>
+        <GestureDetector gesture={Gesture.Exclusive(doubleTap, singleTap)}>
           <View style={styles.videoContainer}>
             {!videoLoaded && (
               <FastImage
@@ -155,13 +156,25 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
           </View>
         </View>
       )}
+
+      <ReelItem
+        user={item?.user}
+        description={item?.caption}
+        likes={23}
+        comments={34}
+        isLiked={false}
+        onComment={() => { }}
+        onLike={() => { }}
+        onLongPressLike={() => { }}
+        onShare={() => { }}
+      />
     </View>
   )
 }
 
 const areEqual = (prevProps: VideoItemProps, nextProps: VideoItemProps) => {
   return (
-    prevProps?.item?._id === nextProps?.item?._id && 
+    prevProps?.item?._id === nextProps?.item?._id &&
     prevProps?.isVisible === nextProps?.isVisible
 
   )

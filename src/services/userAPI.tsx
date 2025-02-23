@@ -5,6 +5,8 @@ import Toast from 'react-native-toast-message'
 import { tokenStorage } from "../state/storage";
 import { useAuthStore } from "../state/userStore";
 import { resetAndNavigate } from "../utils/NavigationUtil";
+import { appAxios } from "../constants/apiConfig";
+import { useFollowingStore } from "../state/followingStore";
 
 interface RegisterData {
     id_token: string;
@@ -70,5 +72,24 @@ export const register = async (data: RegisterData) => {
             },
         })
         console.log('REGISTER ERROR ->', error);
+    }
+}
+
+export const toggleFollow = async (userId: string) => {
+    const { addFollowing } = useFollowingStore.getState();
+    const { refetchUser } = useAuthStore();
+
+    try {
+        const res = await appAxios.put(`/user/follow/${userId}`);
+        const data = {
+            id: userId,
+            isFollowing: res.data.msg == 'Unfollowed' ? false : true
+        }
+
+        addFollowing(data);
+        refetchUser()
+    } catch (error) {
+        console.log('TOGGLE FOLLOW ERROR', error);
+
     }
 }
