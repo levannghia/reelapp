@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { FC, memo, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { screenHeight, screenWidth } from '../../utils/Scaling';
 import { useIsFocused } from '@react-navigation/native';
 import FastImage from 'react-native-fast-image';
@@ -11,6 +11,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import LottieView from 'lottie-react-native';
 import DoubleTapAnim from '../../assets/animations/heart.json';
 import ReelItem from './ReelItem';
+import { toggleLikeReel } from '../../services/reelAPI';
+import { useLikeStore } from '../../state/likeStore';
 
 
 interface VideoItemProps {
@@ -21,6 +23,10 @@ interface VideoItemProps {
 
 const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
 
+  const itemRef = useRef(item);
+  const videoRef = useRef(null);
+
+  const likedReels = useLikeStore(state => state.LikedReel);
   const [paused, setPaused] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
@@ -28,9 +34,22 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
 
   const isFocused = useIsFocused();
 
-  const handleVideoLoad = () => {
-    setVideoLoaded(true)
-  }
+  const handleVideoLoad = useCallback(() => {
+    setVideoLoaded(true);
+  }, []);
+
+  const reelMeta = useMemo(() => {
+    console.log(likedReels);
+    
+    return {
+      isLiked: likedReels?.find((ritem: any) => ritem._id === item._id)?.isLiked ?? item?.isLiked,
+      likesCount: likedReels?.find((ritem: any) => ritem._id === item._id)?.likesCount ?? item?.likesCount,
+    }
+  }, [likedReels, item?._id])
+
+  const handleLikeReel = useCallback(async () => {
+    await toggleLikeReel(item._id, reelMeta?.likesCount);
+  }, [item._id, reelMeta.likesCount])
 
   const handleTogglePlay = useCallback(() => {
     let currentState = !paused ? 'paused' : 'play';
@@ -43,13 +62,13 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
 
   const handleDoubleTapLike = useCallback(() => {
     setShowLikeAnim(true);
-    // if (!reelMeta?.isLiked) {
-    //   handleLikeReel();
-    // }
+    if (!reelMeta?.isLiked) {
+      handleLikeReel();
+    }
     setTimeout(() => {
       setShowLikeAnim(false);
     }, 1200);
-  }, []);
+  }, [reelMeta.isLiked, handleLikeReel]);
 
   const singleTap = Gesture.Tap()
     .maxDuration(250)
@@ -83,7 +102,37 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
         setIsPaused(false);
       }
     }
-  }, [isFocused])
+  }, [isFocused, isVisible])
+
+  const videoProps = useMemo(() => ({
+    poster: item?.thumbUri,
+    posterResizeMode: 'cover',
+    source: (isVisible || preload) ? { uri: ConvertToProxyURL(item?.videoUri) } : undefined,
+    bufferConfig: {
+      maxBufferMs: 3000,
+      minBufferMs: 2500,
+      bufferForPlaybackMs: 2500,
+      bufferForPlaybackAfterRebufferMs: 2500
+    },
+    ignoreSilentSwitch: 'ignore',
+    playWhenInactive: false,
+    playInBackground: false,
+    useTextureView: false,
+    controls: false,
+    disableFocus: false,
+    style: styles.videoContainer,
+    paused: isPaused,
+    repeat: true,
+    hideShutterView: true,
+    minLoadRetryCount: 5,
+    resizeMode: "cover",
+    shutterColor: "transparent",
+    onReadyForDisplay: handleVideoLoad
+  }), [item?.thumbUri, item?.videoUri, isVisible, preload, isPaused, handleVideoLoad]);
+
+  const handleReelLike = useCallback(() => {
+    handleLikeReel();
+  }, [handleLikeReel]);
 
   return (
     <View style={styles.container}>
@@ -101,33 +150,8 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
 
             {isVisible || preload ? (
               <Video
-                poster={item?.thumbUri}
-                posterResizeMode='cover'
-                source={
-                  isVisible || preload
-                    ? { uri: ConvertToProxyURL(item?.videoUri) }
-                    : undefined
-                }
-                bufferConfig={{
-                  maxBufferMs: 3000,
-                  minBufferMs: 2500,
-                  bufferForPlaybackMs: 2500,
-                  bufferForPlaybackAfterRebufferMs: 2500
-                }}
-                ignoreSilentSwitch='ignore'
-                playWhenInactive={false}
-                playInBackground={false}
-                useTextureView={false}
-                controls={false}
-                disableFocus={false}
-                style={styles.videoContainer}
-                paused={isPaused}
-                repeat={true}
-                hideShutterView
-                minLoadRetryCount={5}
-                resizeMode="cover"
-                shutterColor="transparent"
-                onReadyForDisplay={handleVideoLoad}
+                ref={videoRef}
+                {...videoProps}
               />
             ) : null}
           </View>
@@ -160,11 +184,13 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
       <ReelItem
         user={item?.user}
         description={item?.caption}
-        likes={23}
+        likes={reelMeta?.likesCount || 0}
         comments={34}
-        isLiked={false}
+        isLiked={reelMeta?.isLiked}
         onComment={() => { }}
-        onLike={() => { }}
+        onLike={() => { 
+          handleLikeReel()
+        }}
         onLongPressLike={() => { }}
         onShare={() => { }}
       />
