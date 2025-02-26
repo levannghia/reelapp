@@ -1,4 +1,5 @@
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import './src/screens/sheets/sheet'
 import { View, Text, StatusBar, Platform } from 'react-native'
 import {GoogleSignin} from '@react-native-google-signin/google-signin'
 import React from 'react'

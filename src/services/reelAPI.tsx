@@ -6,8 +6,8 @@ interface ReelStore {
     createReel: (data: any) => void;
 }
 
-const {refetchUser} = useAuthStore.getState();
-const {addLikedReel} = useLikeStore.getState();
+const { refetchUser } = useAuthStore.getState();
+const { addLikedReel } = useLikeStore.getState();
 
 export const createReel = async (data: any) => {
     try {
@@ -15,23 +15,23 @@ export const createReel = async (data: any) => {
         await refetchUser();
     } catch (error) {
         console.log("create reel error ==> ", error);
-        
+
     }
-} 
+}
 
 export const toggleLikeReel = async (id: string, likesCount: number) => {
     try {
         const res = await appAxios.post(`/like/reel/${id}`);
-        
+
         const isLiked = res.data.msg !== 'Unliked';
         const newLikesCount = isLiked ? likesCount + 1 : likesCount - 1;
-        
+
         addLikedReel({
             id,
             isLiked,
             likesCount: newLikesCount
         });
-        
+
         return {
             success: true,
             isLiked,
@@ -41,3 +41,16 @@ export const toggleLikeReel = async (id: string, likesCount: number) => {
         console.log('LIKE REEL', error);
     }
 }
+
+export const getListLikes = async (data: any, searchQuery: string) => {
+    try {
+        const res = await appAxios.get(
+            `/like?entityId=${data.entityId}&type=${data.type}&searchQuery=${searchQuery}`,
+        );
+        console.log(res.data);
+        return res.data;
+    } catch (error: any) {
+        console.log('LIST LIKES ->', error);
+        return [];
+    }
+};

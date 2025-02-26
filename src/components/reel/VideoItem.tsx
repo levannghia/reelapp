@@ -13,6 +13,7 @@ import DoubleTapAnim from '../../assets/animations/heart.json';
 import ReelItem from './ReelItem';
 import { toggleLikeReel } from '../../services/reelAPI';
 import { useLikeStore } from '../../state/likeStore';
+import { SheetManager } from 'react-native-actions-sheet';
 
 
 interface VideoItemProps {
@@ -39,11 +40,9 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
   }, []);
 
   const reelMeta = useMemo(() => {
-    console.log(likedReels);
-    
     return {
-      isLiked: likedReels?.find((ritem: any) => ritem._id === item._id)?.isLiked ?? item?.isLiked,
-      likesCount: likedReels?.find((ritem: any) => ritem._id === item._id)?.likesCount ?? item?.likesCount,
+      isLiked: likedReels?.find((ritem: any) => ritem.id === item._id)?.isLiked ?? item?.isLiked,
+      likesCount: likedReels?.find((ritem: any) => ritem.id === item._id)?.likesCount ?? item?.likesCount,
     }
   }, [likedReels, item?._id])
 
@@ -151,7 +150,33 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
             {isVisible || preload ? (
               <Video
                 ref={videoRef}
-                {...videoProps}
+                poster={item.thumbUri}
+                posterResizeMode="cover"
+                source={
+                  isVisible || preload
+                    ? { uri: ConvertToProxyURL(item.videoUri) }
+                    : undefined
+                }
+                bufferConfig={{
+                  minBufferMs: 2500,
+                  maxBufferMs: 3000,
+                  bufferForPlaybackMs: 2500,
+                  bufferForPlaybackAfterRebufferMs: 2500,
+                }}
+                ignoreSilentSwitch={'ignore'}
+                playWhenInactive={false}
+                playInBackground={false}
+                useTextureView={false}
+                controls={false}
+                disableFocus={true}
+                style={styles.videoContainer}
+                paused={isPaused}
+                repeat={true}
+                hideShutterView
+                minLoadRetryCount={5}
+                resizeMode="cover"
+                shutterColor="transparent"
+                onReadyForDisplay={handleVideoLoad}
               />
             ) : null}
           </View>
@@ -188,10 +213,15 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
         comments={34}
         isLiked={reelMeta?.isLiked}
         onComment={() => { }}
-        onLike={() => { 
-          handleLikeReel()
+        onLike={handleReelLike}
+        onLongPressLike={() => {
+          SheetManager.show('like-sheet', {
+            payload: {
+              entityId: item?._id,
+              type: 'reel',
+            },
+          })
         }}
-        onLongPressLike={() => { }}
         onShare={() => { }}
       />
     </View>
