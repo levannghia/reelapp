@@ -47,7 +47,6 @@ export const getListLikes = async (data: any, searchQuery: string) => {
         const res = await appAxios.get(
             `/like?entityId=${data.entityId}&type=${data.type}&searchQuery=${searchQuery}`,
         );
-        console.log(res.data);
         return res.data;
     } catch (error: any) {
         console.log('LIST LIKES ->', error);

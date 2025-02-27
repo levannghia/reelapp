@@ -77,7 +77,7 @@ export const register = async (data: RegisterData) => {
 
 export const toggleFollow = async (userId: string) => {
     const { addFollowing } = useFollowingStore.getState();
-    const { refetchUser } = useAuthStore();
+    const { refetchUser } = useAuthStore.getState();
 
     try {
         const res = await appAxios.put(`/user/follow/${userId}`);
@@ -87,7 +87,7 @@ export const toggleFollow = async (userId: string) => {
         }
 
         addFollowing(data);
-        refetchUser()
+        await refetchUser()
     } catch (error) {
         console.log('TOGGLE FOLLOW ERROR', error);
 
