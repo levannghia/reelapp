@@ -9,22 +9,30 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RFValue } from 'react-native-responsive-fontsize'
 import { getListLikes } from '../../services/reelAPI'
 import UserItem from '../../components/global/UserItem'
+import { debounce } from 'lodash'
 
 const LikeSheet = (props: SheetProps<"like-sheet">) => {
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (searchTerm: string) => {
         setLoading(true);
-        const data = await getListLikes(props.payload, search);
+        const data = await getListLikes(props.payload, searchTerm);
         setUsers(data);
         setLoading(false);
     }
 
+    const debouncedFetchUsers = debounce(fetchUsers, 300)
+
     useEffect(() => {
-        fetchUsers();
+        debouncedFetchUsers(search);
+
+        return () => {
+            debouncedFetchUsers.cancel();
+        }
     }, [props.payload?.entityId, search])
+
     return (
         <ActionSheet
             id={props.sheetId}

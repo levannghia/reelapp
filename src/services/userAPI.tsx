@@ -87,7 +87,7 @@ export const toggleFollow = async (userId: string) => {
         }
 
         addFollowing(data);
-        await refetchUser()
+        refetchUser()
     } catch (error) {
         console.log('TOGGLE FOLLOW ERROR', error);
 

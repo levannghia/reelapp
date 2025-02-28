@@ -13,18 +13,17 @@ interface UserDetailsProps {
 }
 
 const UserDetails: FC<UserDetailsProps> = ({ user }) => {
-  const followingUser = useFollowingStore.getState().following;
-  const loggedInUser = useAuthStore.getState().user;
+  const followingUser = useFollowingStore(state => state.following);
+  const loggedInUser = useAuthStore(state => state.user);
   const isFollowing = useMemo(() => {
     return (
-      followingUser?.find((item: any) => {
-        item.id === user.id;
-      })?.isFollowing ?? user?.isFollowing
+      followingUser?.find((item: any) =>
+        item.id === user._id)?.isFollowing ?? user?.isFollowing
     )
   }, [followingUser, user._id, user.isFollowing]);
 
   const handleFollow = async () => {
-    await toggleFollow(user?._id);
+    await toggleFollow(user._id);
   }
 
   return (
