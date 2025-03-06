@@ -93,3 +93,13 @@ export const toggleFollow = async (userId: string) => {
 
     }
 }
+
+export const getSearchUser = (text: string) => {
+    try {
+        const res = appAxios.get(`/user/search?text=${text}`);
+        return res.data?.users;
+    } catch (error) {
+        console.log('GET SEARCH USER ERROR', error);
+        return [];
+    }
+}

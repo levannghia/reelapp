@@ -1,11 +1,16 @@
-import { Keyboard, Platform, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
+import { ActivityIndicator, FlatList, Keyboard, Platform, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import ActionSheet, { SheetManager, SheetProps } from 'react-native-actions-sheet'
 import { Colors } from '../../constants/Colors'
 import { screenHeight } from '../../utils/Scaling'
 import CustomText from '../../components/global/CustomText'
 import { FONTS } from '../../constants/Fonts'
 import { useAuthStore } from '../../state/userStore'
+import { getSearchUser } from '../../services/userAPI'
+import { debounce, set } from 'lodash'
+import { getComments } from '../../services/commentApi'
+import UserItem from '../../components/global/UserItem'
+import CommentItem from '../../components/comment/CommentItem'
 
 const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const user = useAuthStore(state => state.user);
@@ -23,10 +28,50 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
         null,
     );
     const [confirmMention, setConfirmMention] = useState<any | null>(null);
+    const flatListRef = useRef<FlatList>(null);
+
+    const removeDulicate = (data: any[]) => {
+        const uniqueDataMap = new Map();
+        data.forEach((item) => {
+            if (!uniqueDataMap.has(item._id)) {
+                uniqueDataMap.set(item._id, item);
+            }
+        });
+
+        return Array.from(uniqueDataMap.values());
+    };
 
     const fetchSearchUserData = async () => {
-        
+        setSearchUserLoading(true);
+        const searchUserData = await getSearchUser(mentionSearchWord || '');
+        setSearchUserLoading(false);
+        setFilterData(searchUserData);
     }
+    const debouncedFetchUserData = debounce(fetchSearchUserData, 300);
+
+    const fetchComments = async (scrollOffset: number) => {
+        setLoading(true);
+        const newData = await getComments(props?.payload?.id || '', scrollOffset);
+
+        setOffset(scrollOffset + 5);
+        if (newData.length < 5) {
+            setHasMore(false);
+        }
+
+        setCommentData(removeDulicate([...commentData, ...newData]));
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        debouncedFetchUserData();
+        return () => {
+            debouncedFetchUserData.cancel();
+        }
+    }, [mentionSearchWord])
+
+    useEffect(() => {
+        fetchComments(0);
+    }, [props?.payload?.id])
 
     return (
         <ActionSheet
@@ -45,6 +90,104 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
                 Comments
             </CustomText>
             <View style={styles.driver} />
+            {mentionSearchWord != null ? (
+                <FlatList
+                    data={filterData || []}
+                    keyboardShouldPersistTaps='always'
+                    keyboardDismissMode='interactive'
+                    keyExtractor={(item: User) => item._id?.toString()}
+                    renderItem={({ item }) => (
+                        <UserItem
+                            user={item}
+                            onPress={() => {
+                                const dataMention = {
+                                    user: item,
+                                    replaceWord: mentionSearchWord
+                                }
+
+                                setConfirmMention(dataMention);
+                            }}
+                        />
+                    )}
+                    style={{ height: '100%', marginTop: 20 }}
+                    ListFooterComponent={() => (
+                        <>
+                            {searchUserLoading && (
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        margin: 20,
+                                        alignItems: 'center',
+                                        gap: 4,
+                                    }}>
+                                    <CustomText variant="h7" style={{ color: Colors.lightText }}>
+                                        {mentionSearchWord != '' &&
+                                            `Searching for ${mentionSearchWord}`}
+                                    </CustomText>
+                                    <ActivityIndicator color={Colors.border} size="small" />
+                                </View>
+                            )}
+                        </>
+                    )}
+                />
+            ) : (
+                <FlatList
+                    nestedScrollEnabled
+                    ref={flatListRef}
+                    style={{ height: '100%' }}
+                    keyboardShouldPersistTaps="always"
+                    keyboardDismissMode="interactive"
+                    data={commentData}
+                    onScrollToIndexFailed={() => { }}
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={10}
+                    removeClippedSubviews={true}
+                    onEndReachedThreshold={0.08}
+                    ListFooterComponent={() => {
+                        if (!loading) {
+                            return null;
+                        }
+                        return (
+                            <View style={{ marginTop: 20 }}>
+                                <ActivityIndicator color={Colors.white} size="small" />
+                            </View>
+                        );
+                    }}
+                    onEndReached={() => {
+                        if (hasMore) {
+                            fetchComments(offset);
+                        }
+                    }}
+                    ListEmptyComponent={() => {
+                        if (loading) {
+                            return null;
+                        }
+                        return (
+                            <View
+                                style={{
+                                    flex: 1,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    paddingTop: 40,
+                                }}>
+                                <CustomText>No Comments yet!</CustomText>
+                            </View>
+                        );
+                    }}
+                    keyExtractor={item => item._id.toString()}
+                    renderItem={({ item, index }) => {
+                        return (
+                            <CommentItem
+                                user={props?.payload?.user}
+                                scrollToParentComment={() => {}}
+                                comment={item}
+                                scrollToChildComment={() =>{}}
+                                onReply={(comment, replyCommentId) =>{}}
+                            />
+                        );
+                    }}
+                />
+            )}
         </ActionSheet>
     )
 }
