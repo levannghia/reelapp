@@ -11,6 +11,7 @@ import { debounce, set } from 'lodash'
 import { getComments } from '../../services/commentApi'
 import UserItem from '../../components/global/UserItem'
 import CommentItem from '../../components/comment/CommentItem'
+import CommentInput from '../../components/comment/CommentInput'
 
 const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const user = useAuthStore(state => state.user);
@@ -60,6 +61,14 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
 
         setCommentData(removeDulicate([...commentData, ...newData]));
         setLoading(false);
+    }
+
+    const handleReplyComment = (data: any) => {
+
+    }
+
+    const handlePostComment = (data: any) => {
+
     }
 
     useEffect(() => {
@@ -177,17 +186,34 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
                     keyExtractor={item => item._id.toString()}
                     renderItem={({ item, index }) => {
                         return (
-                            <CommentItem
-                                user={props?.payload?.user}
-                                scrollToParentComment={() => {}}
-                                comment={item}
-                                scrollToChildComment={() =>{}}
-                                onReply={(comment, replyCommentId) =>{}}
-                            />
+                            // <CommentItem
+                            //     user={props?.payload?.user}
+                            //     scrollToParentComment={() => {}}
+                            //     comment={item}
+                            //     scrollToChildComment={() =>{}}
+                            //     onReply={(comment, replyCommentId) =>{}}
+                            // />
+                            <View>
+                                <CustomText>{index}</CustomText>
+                            </View>
                         );
                     }}
                 />
             )}
+
+            <CommentInput
+                setMentionSearchWord={(value) => setMentionSearchWord(value)}
+                confirmMention={confirmMention}
+                replyTo={replyTo}
+                onPostComment={(data: any) => {
+                    if(replyCommentId) handleReplyComment(data);
+                    else handlePostComment(data);
+                }}
+                clearReplyTo={() => {
+                    setReplyTo(null);
+                    setReplyCommentId(null);
+                }}
+            />
         </ActionSheet>
     )
 }
