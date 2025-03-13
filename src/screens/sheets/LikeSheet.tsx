@@ -69,19 +69,19 @@ const LikeSheet = (props: SheetProps<"like-sheet">) => {
             </View>
 
             {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={Colors.text}
-          style={styles.loading}
-        />
-      ) : (
-        <FlatList
-          data={users}
-          style={{height: '100%'}}
-          keyExtractor={(item: User) => item._id?.toString()}
-          renderItem={({item}) => <UserItem user={item} />}
-        />
-      )}
+                <ActivityIndicator
+                    size="small"
+                    color={Colors.text}
+                    style={styles.loading}
+                />
+            ) : (
+                <FlatList
+                    data={users}
+                    style={{ height: '100%' }}
+                    keyExtractor={(item: User) => item._id?.toString()}
+                    renderItem={({ item }) => <UserItem user={item} />}
+                />
+            )}
         </ActionSheet>
     )
 }

@@ -1,5 +1,5 @@
 import { Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { FC, useRef, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { emojiListData } from '../../utils/StaticData';
 import CustomText from '../global/CustomText';
@@ -41,11 +41,11 @@ const CommentInput: FC<CommentInputProps> = ({
     }
 
     const handleSelectionChange = (event: any) => {
-
+        
     }
 
-    const handleSend = (res: string | null) => { 
-        if(res) {
+    const handleSend = (res: string | null) => {
+        if (res) {
             clearReplyTo();
             setMention('');
             setComment('');
@@ -65,6 +65,59 @@ const CommentInput: FC<CommentInputProps> = ({
         setComment('');
 
     }
+
+    const replaceMentionAtCursor = (
+        text: string,
+        replaceWord: string,
+        newWord: string,
+        cursorPos: number,
+    ) => {
+        const index = text.lastIndexOf(`@${replaceWord}`, cursorPos);
+        if (index !== -1 && index < cursorPos) {
+            return (
+                text.slice(0, index) +
+                `@${newWord} ` +
+                text.slice(index + replaceWord.length + 1)
+            );
+        }
+        return text;
+    };
+
+    useEffect(() => {
+        if (replyTo) {
+            const mentionText = `@${replyTo.user.username} `;
+            setMention(mentionText);
+            setComment(mentionText);
+            textInputRef.current?.focus();
+        } else {
+            setMention('');
+            setComment('');
+        }
+    }, [replyTo]);
+
+    useEffect(() => {
+        if (confirmMention != null) {
+            setComment(
+                replaceMentionAtCursor(
+                    comment,
+                    confirmMention.replaceWord,
+                    confirmMention.user?.username,
+                    cursorPosition,
+                ),
+            );
+        }
+    }, [confirmMention]);
+
+    useEffect(() => {
+        const textBeforeCursor = comment.slice(0, cursorPosition);
+        const match = textBeforeCursor.match(/(^|\s)@([a-zA-Z]*)$/);
+        if (match) {
+            const lastWord = match[2];
+            setMentionSearchWord(lastWord);
+        } else {
+            setMentionSearchWord(null);
+        }
+    }, [cursorPosition])
 
     return (
         <View style={styles.container}>

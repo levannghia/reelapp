@@ -67,8 +67,26 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
 
     }
 
-    const handlePostComment = (data: any) => {
+    const handlePostComment = async (data: any) => {
+        console.log(data);
+        const newCommentId = commentData.length + 1;
+        const timestamp = new Date().toISOString();
 
+        const newComment = {
+            _id: newCommentId,
+            user: user,
+            comment: data.comment || '',
+            likes: 0,
+            timestamp: timestamp,
+            hasGif: data.hasGif || false,
+            isPosting: true,
+            gifUrl: data.hasGif ? data.gifUrl : undefined,
+            replies: [],
+            repliesCount: 0,
+        };
+
+        commentData.unshift(newComment);
+        // scrollToTop();
     }
 
     useEffect(() => {
@@ -206,7 +224,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
                 confirmMention={confirmMention}
                 replyTo={replyTo}
                 onPostComment={(data: any) => {
-                    if(replyCommentId) handleReplyComment(data);
+                    if (replyCommentId) handleReplyComment(data);
                     else handlePostComment(data);
                 }}
                 clearReplyTo={() => {
