@@ -41,7 +41,10 @@ const CommentInput: FC<CommentInputProps> = ({
     }
 
     const handleSelectionChange = (event: any) => {
-        
+        const cursorPos = event.nativeEvent.selection.start;
+        setTimeout(() => {
+            setCursorPosition(cursorPos);
+        }, 100);
     }
 
     const handleSend = (res: string | null) => {

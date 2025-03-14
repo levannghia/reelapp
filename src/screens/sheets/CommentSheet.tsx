@@ -45,6 +45,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const fetchSearchUserData = async () => {
         setSearchUserLoading(true);
         const searchUserData = await getSearchUser(mentionSearchWord || '');
+        console.log(searchUserData);
         setSearchUserLoading(false);
         setFilterData(searchUserData);
     }
@@ -53,7 +54,8 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const fetchComments = async (scrollOffset: number) => {
         setLoading(true);
         const newData = await getComments(props?.payload?.id || '', scrollOffset);
-
+       
+        
         setOffset(scrollOffset + 5);
         if (newData.length < 5) {
             setHasMore(false);
@@ -68,7 +70,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     }
 
     const handlePostComment = async (data: any) => {
-        console.log(data);
+        // console.log(data);
         const newCommentId = commentData.length + 1;
         const timestamp = new Date().toISOString();
 
