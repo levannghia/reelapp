@@ -8,7 +8,7 @@ import { FONTS } from '../../constants/Fonts'
 import { useAuthStore } from '../../state/userStore'
 import { getSearchUser } from '../../services/userAPI'
 import { debounce, set } from 'lodash'
-import { getComments } from '../../services/commentApi'
+import { getComments, postComment } from '../../services/commentApi'
 import UserItem from '../../components/global/UserItem'
 import CommentItem from '../../components/comment/CommentItem'
 import CommentInput from '../../components/comment/CommentInput'
@@ -30,6 +30,21 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     );
     const [confirmMention, setConfirmMention] = useState<any | null>(null);
     const flatListRef = useRef<FlatList>(null);
+    const scrollToTop = () => {
+        if (flatListRef.current) {
+            flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+        }
+    };
+    const scrollToComment = (index: number, childIndex: number = 0) => {
+        const sum = index + childIndex;
+        if(flatListRef.current && sum < commentData?.length) {
+            flatListRef.current?.scrollToIndex({
+                index: sum,
+                animated: true,
+                viewOffset: 0,
+            });
+        }
+    }
 
     const removeDulicate = (data: any[]) => {
         const uniqueDataMap = new Map();
@@ -54,7 +69,6 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const fetchComments = async (scrollOffset: number) => {
         setLoading(true);
         const newData = await getComments(props?.payload?.id || '', scrollOffset);
-       
         
         setOffset(scrollOffset + 5);
         if (newData.length < 5) {
@@ -88,8 +102,28 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
         };
 
         commentData.unshift(newComment);
-        // scrollToTop();
+        scrollToTop();
+        setReplyTo(null);
+        setReplyCommentId(null);
+
+        const commentPostData = {
+            reelId: props.payload?.id,
+            ...(data?.hasGif ? {gifUrl: data.gifUrl} : {comment: data?.comment}),
+        }
+
+        const commentResponse = await postComment(commentPostData, props.payload?.commentsCount || 0);
+        const tempCommentIndex = commentData.findIndex(comment => comment._id === newCommentId);
+        if(tempCommentIndex !== -1) {
+            commentData[tempCommentIndex] = commentResponse;
+            commentData[tempCommentIndex].user = user;
+            setCommentData([...commentData]);
+        }
     }
+
+    const handleReply = (comment: Comment | SubReply, replyCommentId: string | number) => {
+
+    }
+    // console.log(commentData);
 
     useEffect(() => {
         debouncedFetchUserData();
@@ -206,16 +240,13 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
                     keyExtractor={item => item._id.toString()}
                     renderItem={({ item, index }) => {
                         return (
-                            // <CommentItem
-                            //     user={props?.payload?.user}
-                            //     scrollToParentComment={() => {}}
-                            //     comment={item}
-                            //     scrollToChildComment={() =>{}}
-                            //     onReply={(comment, replyCommentId) =>{}}
-                            // />
-                            <View>
-                                <CustomText>{index}</CustomText>
-                            </View>
+                            <CommentItem
+                                user={props?.payload?.user}
+                                scrollToParentComment={() => scrollToComment(index)}
+                                comment={item}
+                                scrollToChildComment={childIndex => scrollToComment(index, childIndex)}
+                                onReply={(comment, replyCommentId) => handleReply(comment, replyCommentId)}
+                            />
                         );
                     }}
                 />

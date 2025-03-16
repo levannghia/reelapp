@@ -14,7 +14,7 @@ import ReelItem from './ReelItem';
 import { toggleLikeReel } from '../../services/reelAPI';
 import { useLikeStore } from '../../state/likeStore';
 import { SheetManager } from 'react-native-actions-sheet';
-
+import { useCommentStore } from '../../state/commentStore';
 
 interface VideoItemProps {
   item: any;
@@ -28,10 +28,11 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
   const videoRef = useRef(null);
 
   const likedReels = useLikeStore(state => state.LikedReel);
+  const commentsCount = useCommentStore(state => state.comments);
   const [paused, setPaused] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
-  const [showLikeAnim, setShowLikeAnim] = useState<boolean>(false)
+  const [showLikeAnim, setShowLikeAnim] = useState<boolean>(false);
 
   const isFocused = useIsFocused();
 
@@ -45,6 +46,12 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
       likesCount: likedReels?.find((ritem: any) => ritem.id === item._id)?.likesCount ?? item?.likesCount,
     }
   }, [likedReels, item?._id])
+
+  const commentMeta = useMemo(() => {
+    return (
+      commentsCount?.find((ritem: any) => ritem.reelId === item._id)?.commentsCount?? item?.commentsCount
+    )
+  }, [commentsCount, item?._id])
 
   const handleLikeReel = useCallback(async () => {
     await toggleLikeReel(item._id, reelMeta?.likesCount);
@@ -210,7 +217,7 @@ const VideoItem: FC<VideoItemProps> = ({ item, isVisible, preload }) => {
         user={item?.user}
         description={item?.caption}
         likes={reelMeta?.likesCount || 0}
-        comments={item?.commentsCount}
+        comments={commentMeta}
         isLiked={reelMeta?.isLiked}
         onComment={() => {
           SheetManager.show('comment-sheet', {
