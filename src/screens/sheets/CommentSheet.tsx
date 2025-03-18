@@ -60,7 +60,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const fetchSearchUserData = async () => {
         setSearchUserLoading(true);
         const searchUserData = await getSearchUser(mentionSearchWord || '');
-        console.log(searchUserData);
+        // console.log(searchUserData);
         setSearchUserLoading(false);
         setFilterData(searchUserData);
     }
