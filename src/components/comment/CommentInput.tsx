@@ -191,9 +191,10 @@ const CommentInput: FC<CommentInputProps> = ({
                             <TouchableOpacity
                                 onPress={async () => {
                                     const res = await SheetManager.show('gif-sheet');
-                                    // if (res) {
-                                    //     handleSend(res);
-                                    // }
+                                    console.log("res gif", res);
+                                    if (res) {
+                                        handleSend(res);
+                                    }
                                 }}>
                                 <Image
                                     source={GIFIcon}
