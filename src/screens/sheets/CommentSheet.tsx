@@ -8,7 +8,7 @@ import { FONTS } from '../../constants/Fonts'
 import { useAuthStore } from '../../state/userStore'
 import { getSearchUser } from '../../services/userAPI'
 import { debounce, set } from 'lodash'
-import { getComments, postComment } from '../../services/commentApi'
+import { getComments, postComment, postReply } from '../../services/commentApi'
 import UserItem from '../../components/global/UserItem'
 import CommentItem from '../../components/comment/CommentItem'
 import CommentInput from '../../components/comment/CommentInput'
@@ -37,7 +37,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     };
     const scrollToComment = (index: number, childIndex: number = 0) => {
         const sum = index + childIndex;
-        if(flatListRef.current && sum < commentData?.length) {
+        if (flatListRef.current && sum < commentData?.length) {
             flatListRef.current?.scrollToIndex({
                 index: sum,
                 animated: true,
@@ -69,7 +69,7 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
     const fetchComments = async (scrollOffset: number) => {
         setLoading(true);
         const newData = await getComments(props?.payload?.id || '', scrollOffset);
-        
+
         setOffset(scrollOffset + 5);
         if (newData.length < 5) {
             setHasMore(false);
@@ -79,8 +79,30 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
         setLoading(false);
     }
 
-    const handleReplyComment = (data: any) => {
+    const handleReplyComment = async (data: any) => {
+        const commentPostData = {
+            reelId: props.payload?.id,
+            commentId: replyCommentId,
+            ...(data?.hasGif ? { gifUrl: data?.gifUrl } : { reply: data?.comment }),
+        };
+        const res = await postReply(commentPostData, props.payload?.commentsCount || 0);
 
+        if (res) {
+            const tempCommentIndex = commentData.findIndex(
+                comment => comment._id === replyCommentId,
+            );
+
+            // Replace the temporary comment with the actual comment
+            if (tempCommentIndex !== -1) {
+                commentData[tempCommentIndex].repliesCount =
+                    commentData[tempCommentIndex].repliesCount + 1;
+                setCommentData([...commentData]);
+            }
+
+            // emitReplyPostedEvent(res);
+        }
+        setReplyTo(null);
+        setReplyCommentId(null);
     }
 
     const handlePostComment = async (data: any) => {
@@ -108,21 +130,25 @@ const CommentSheet = (props: SheetProps<'comment-sheet'>) => {
 
         const commentPostData = {
             reelId: props.payload?.id,
-            ...(data?.hasGif ? {gifUrl: data.gifUrl} : {comment: data?.comment}),
+            ...(data?.hasGif ? { gifUrl: data.gifUrl } : { comment: data?.comment }),
         }
 
         const commentResponse = await postComment(commentPostData, props.payload?.commentsCount || 0);
         const tempCommentIndex = commentData.findIndex(comment => comment._id === newCommentId);
-        if(tempCommentIndex !== -1) {
+        if (tempCommentIndex !== -1) {
             commentData[tempCommentIndex] = commentResponse;
             commentData[tempCommentIndex].user = user;
             setCommentData([...commentData]);
         }
     }
 
-    const handleReply = (comment: Comment | SubReply, replyCommentId: string | number) => {
-
-    }
+    const handleReply = (
+        comment: Comment | SubReply,
+        replyCommentId: string | number,
+    ) => {
+        setReplyTo(comment);
+        setReplyCommentId(replyCommentId);
+    };
     // console.log(commentData);
 
     useEffect(() => {

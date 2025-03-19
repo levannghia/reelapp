@@ -56,7 +56,7 @@ const CommentItem: FC<CommentItemProps> = ({
           user={user}
           scrollToComment={() => scrollToParentComment}
         />
-      </View>
+      
       {comment?.repliesCount > 0 && (
         <View style={{ marginLeft: 40 }}>
           {replies?.map((reply, index) => (
@@ -122,6 +122,7 @@ const CommentItem: FC<CommentItemProps> = ({
           )}
         </View>
       )}
+      </View>
     </View>
   )
 }

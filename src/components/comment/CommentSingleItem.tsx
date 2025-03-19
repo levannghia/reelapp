@@ -1,5 +1,5 @@
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { FC, useEffect, useRef } from 'react'
+import React, { FC, useEffect, useMemo, useRef } from 'react'
 import { RFValue } from 'react-native-responsive-fontsize';
 import { Colors } from '../../constants/Colors';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,6 +11,9 @@ import { FONTS } from '../../constants/Fonts';
 import { getRelativeTime } from '../../utils/DateUtils';
 import FastImage from 'react-native-fast-image';
 import GIFLoader from '../../assets/animations/giphy.gif';
+import { useLikeStore } from '../../state/likeStore';
+import { toggleLikeReel } from '../../services/reelAPI';
+import { toggleLikeComment, toggleLikeReply } from '../../services/likeComment';
 
 interface CommentSingleItemProps {
     isReply?: boolean;
@@ -27,6 +30,26 @@ const CommentSingleItem: FC<CommentSingleItemProps> = ({
     user,
     onReply,
 }) => {
+    const likedComment = useLikeStore(state => state.LikedComment);
+    const likedReply = useLikeStore(state => state.LikedReply);
+
+    const commentMeta = useMemo(() => {
+        return {
+            isLiked: likedComment.find((el) => el.id === comment._id)?.isLiked ?? comment?.isLiked,
+            likesCount: likedComment?.find((el) => el.id === comment._id)?.likesCount ?? comment?.likesCount,
+        }
+    }, [likedComment, comment._id])
+
+    const replyMeta = useMemo(() => {
+        return {
+            isLiked:
+                likedReply?.find((ritem: any) => ritem.id === comment._id)?.isLiked ??
+                comment.isLiked,
+            likesCount:
+                likedReply?.find((ritem: any) => ritem.id === comment._id)
+                    ?.likesCount ?? comment.likesCount,
+        };
+    }, [likedReply, comment._id]);
 
     const backgroundColor = useRef(new Animated.Value(0)).current;
     const startAnimation = () => {
@@ -43,6 +66,24 @@ const CommentSingleItem: FC<CommentSingleItemProps> = ({
             }),
         ]).start();
     };
+
+    const likeComment = async () => {
+        'worklet';
+        if (!isReply) {
+            await toggleLikeComment(
+                comment._id,
+                commentMeta?.likesCount,
+                commentMeta?.isLiked ?? false,
+            );
+            return;
+        }
+        await toggleLikeReply(
+            comment._id,
+            replyMeta?.likesCount,
+            replyMeta?.isLiked ?? false,
+        )
+    }
+
     const handleReply = () => {
         scrollToComment();
         startAnimation();
@@ -60,7 +101,7 @@ const CommentSingleItem: FC<CommentSingleItemProps> = ({
         .maxDuration(250)
         .numberOfTaps(2)
         .onStart(() => {
-            //   likeComment();
+            likeComment();
         })
         .runOnJS(true);
 
@@ -161,8 +202,70 @@ const CommentSingleItem: FC<CommentSingleItemProps> = ({
                             resizeMode="cover"
                         />
                     )}
+                    {!comment?.isPosting ? (
+                        <TouchableOpacity
+                            onPress={handleReply}
+                            style={{ alignSelf: 'flex-start' }}>
+                            <CustomText
+                                variant="h7"
+                                style={styles.timestamp}
+                                fontFamily={FONTS.Medium}>
+                                Reply
+                            </CustomText>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            disabled={true}
+                            onPress={handleReply}
+                            style={{ alignSelf: 'flex-start' }}>
+                            <CustomText
+                                variant="h7"
+                                style={styles.timestamp}
+                                fontFamily={FONTS.Medium}>
+                                Posting....
+                            </CustomText>
+                        </TouchableOpacity>
+                    )}
                 </View>
-
+                {!comment?.isPosting && (
+                    <TouchableOpacity
+                        style={styles.button}
+                        onLongPress={() => {
+                            SheetManager.show('like-sheet', {
+                                payload: {
+                                    entityId: comment?._id,
+                                    type: isReply ? 'reply' : 'comment',
+                                },
+                            });
+                        }}
+                        onPress={() => {
+                            likeComment();
+                        }}>
+                        <Icon
+                            name={
+                                (isReply && replyMeta?.isLiked) ||
+                                    (!isReply && commentMeta?.isLiked)
+                                    ? 'heart'
+                                    : 'heart-outline'
+                            }
+                            size={RFValue(12)}
+                            color={
+                                (isReply && replyMeta.isLiked) ||
+                                    (!isReply && commentMeta.isLiked)
+                                    ? Colors.like
+                                    : Colors.lightText
+                            }
+                        />
+                        <CustomText
+                            variant="h7"
+                            style={{ color: Colors.lightText }}
+                            fontFamily={FONTS.Medium}>
+                            {isReply
+                                ? replyMeta.likesCount || ''
+                                : commentMeta.likesCount || ''}
+                        </CustomText>
+                    </TouchableOpacity>
+                )}
             </Animated.View>
         </GestureDetector>
     )
