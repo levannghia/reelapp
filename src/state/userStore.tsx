@@ -15,6 +15,7 @@ interface userState {
     checkUserNameAvailability: (username: string) => void;
     signInWithGoogle: () => void;
     refetchUser: () => void;
+    logout: () => void;
 }
 
 interface RegisterData {
@@ -100,7 +101,21 @@ export const useAuthStore = create((
                 } catch (error: any) {
                     console.log('PROFILE ->', error);
                 }
-            }
+            },
+            logout: async () => {
+                try {
+                    tokenStorage.delete('access_token');
+                    tokenStorage.delete('refresh_token');
+                    
+                    // Sign out from Google if using Google auth
+                    await GoogleSignin.signOut();
+                    set({ user: null });
+                    resetAndNavigate('LoginScreen');
+                } catch (error) {
+                    console.log('Logout Error --> ', error);
+                    Alert.alert('Error logging out. Please try again.');
+                }
+            },
         }),
         {
             name: 'user-store', // name of the item in the storage (must be unique)
