@@ -4,6 +4,7 @@ import SplashScreen from "../screens/auth/SplashScreen";
 import HomeScreen from "../screens/dashboard/HomeScreen";
 import FeedReelScrollScreen from "../screens/reel/FeedReelScrollScreen";
 import PickReelScreen from "../screens/reel/PickReelScreen";
+import ReelScrollScreen from "../screens/reel/ReelScrollScreen";
 import UploadReelScreen from "../screens/reel/UploadReelScreen";
 import BottomTab from "./BottomTab";
 
@@ -38,6 +39,10 @@ export const dashboardStack = [
     {
         name: 'FeedReelScrollScreen',
         component: FeedReelScrollScreen
+    },
+    {
+        name: 'ReelScrollScreen',
+        component: ReelScrollScreen,
     },
 ]
 

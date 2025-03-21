@@ -21,17 +21,17 @@ const ProfileScreen: FC = () => {
   const myTabs = [
     {
       name: 'Reel',
-      component: <ReelListTab/>,
+      component: <ReelListTab user={user} type='post'/>,
       icon: 'apps-sharp',
     },
     {
       name: 'Liked',
-      component: <ReelListTab/>,
+      component: <ReelListTab user={user} type='liked'/>,
       icon: 'heart',
     },
     {
       name: 'History',
-      component: <ReelListTab/>,
+      component: <ReelListTab user={user} type='watched'/>,
       icon: 'logo-tableau',
     }
   ]
@@ -86,7 +86,6 @@ const ProfileScreen: FC = () => {
           elevation: 0,
           shadowColor: 'transparent',
           shadowOpacity: 0,
-
         }}
       >
         {myTabs.map((tab, index) => {
