@@ -1,5 +1,5 @@
-import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native'
-import React, { FC, useEffect, useState } from 'react'
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
+import React, { FC, useEffect, useState } from 'react';
 import ProfileReelCard from '../feed/ProfileReelCard';
 import { navigate } from '../../utils/NavigationUtil';
 import { Tabs } from 'react-native-collapsible-tab-view';
@@ -90,7 +90,7 @@ const ReelListTab: FC<{
   }
 
   return (
-    <Tabs.FlashList
+    <Tabs.FlatList
       data={data}
       renderItem={renderItem}
       keyExtractor={(item: any, index: number) => index.toString()}

@@ -1,7 +1,10 @@
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
 import SplashScreen from "../screens/auth/SplashScreen";
+import FollowingScreen from "../screens/dashboard/FollowingScreen";
 import HomeScreen from "../screens/dashboard/HomeScreen";
+import ReedemScreen from "../screens/dashboard/ReedemScreen";
+import UserProfileScreen from "../screens/dashboard/UserProfileScreen";
 import FeedReelScrollScreen from "../screens/reel/FeedReelScrollScreen";
 import PickReelScreen from "../screens/reel/PickReelScreen";
 import ReelScrollScreen from "../screens/reel/ReelScrollScreen";
@@ -44,6 +47,18 @@ export const dashboardStack = [
         name: 'ReelScrollScreen',
         component: ReelScrollScreen,
     },
+    {
+        name: 'FollowingScreen',
+        component: FollowingScreen,
+    },
+    {
+        name: 'UserProfileScreen',
+        component: UserProfileScreen,
+    },
+    {
+        name: 'ReedemScreen',
+        component: ReedemScreen,
+    }
 ]
 
 export const mergedStacks = [...dashboardStack, ...authStack];

@@ -1,6 +1,5 @@
-import { View, StyleSheet, ViewStyle, Easing } from 'react-native';
+import { View, StyleSheet, ViewStyle, Easing, Animated } from 'react-native';
 import React, { FC, useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { screenWidth } from '../../utils/Scaling';
 

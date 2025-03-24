@@ -3,11 +3,16 @@ import React, { FC, useEffect, useState } from 'react'
 import GlobalBg from '../../assets/images/globebg.jpg';
 import { screenHeight, screenWidth } from '../../utils/Scaling';
 import { useReelStore } from '../../state/reelStore';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated'
+import Animated, { useAnimatedStyle, useSharedValue, configureReanimatedLogger, ReanimatedLogLevel, } from 'react-native-reanimated'
 import { navigate } from '../../utils/NavigationUtil';
 import ReelItemCard from './ReelItemCard';
 import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import StatsContainer from './StatsContainer';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
 
 function clamp(val: any, min: any, max: any) {
   return Math.min(Math.max(val, min), max);

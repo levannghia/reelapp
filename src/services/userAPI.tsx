@@ -105,3 +105,13 @@ export const getSearchUser = async (text: string) => {
         return [];
     }
 }
+
+export const fetchUserByUsername = async (username: string) => {
+    try {
+      const res = await appAxios.get(`/user/profile/${username}`);
+      return res.data.user;
+    } catch (error: any) {
+      console.log('FETCH BY USERNAME ->', error);
+      return null;
+    }
+  };

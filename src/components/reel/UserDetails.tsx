@@ -7,6 +7,7 @@ import { useAuthStore } from '../../state/userStore'
 import { Colors } from '../../constants/Colors'
 import { useFollowingStore } from '../../state/followingStore'
 import { toggleFollow } from '../../services/userAPI'
+import { navigate, push } from '../../utils/NavigationUtil'
 
 interface UserDetailsProps {
   user: any
@@ -30,6 +31,11 @@ const UserDetails: FC<UserDetailsProps> = ({ user }) => {
     <View>
       <TouchableOpacity
         style={styles.flexRow}
+        onPress={() => {
+          push('UserProfileScreen', {
+            username: user.username,
+          })
+        }}
       >
         <FastImage source={{ uri: user?.userImage, priority: FastImage.priority.high }} style={styles.img} resizeMode='cover' />
         <CustomText variant='h7' fontFamily={FONTS.Medium}>

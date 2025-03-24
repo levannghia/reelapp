@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import React, { FC, useRef, useState } from 'react'
 import CustomSafeAreaView from '../../components/global/CustomSafeAreaView'
 import { Colors } from '../../constants/Colors'
