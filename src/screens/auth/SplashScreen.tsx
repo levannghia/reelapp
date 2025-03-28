@@ -1,12 +1,14 @@
-import { View, Text, StyleSheet, Animated, Alert } from 'react-native'
+import { View, Text, StyleSheet, Animated, Alert, Linking } from 'react-native'
 import React, { FC, useEffect, useState } from 'react'
 import { Colors } from '../../constants/Colors'
 import Logo from '../../assets/images/logo_t.png'
 import CustomText from '../../components/global/CustomText'
 import { FONTS } from '../../constants/Fonts'
 import { tokenStorage } from '../../state/storage'
-import {jwtDecode} from 'jwt-decode'
-import { resetAndNavigate } from '../../utils/NavigationUtil'
+import { jwtDecode } from 'jwt-decode'
+import { navigate, resetAndNavigate } from '../../utils/NavigationUtil'
+import { extractTypeAndId } from '../../utils/DateUtils'
+import { getReelById } from '../../services/reelAPI'
 
 interface DecodedToken {
   exp: number
@@ -20,42 +22,95 @@ const SplashScreen: FC = () => {
     const accessToken = tokenStorage.getString('access_token') as string;
     const refreshToken = tokenStorage.getString('refresh_token') as string;
 
-    if(accessToken) {
+    if (accessToken) {
       const decodedAccessToken = jwtDecode<DecodedToken>(accessToken);
       const decodedRefreshToken = jwtDecode<DecodedToken>(refreshToken);
 
       const currentTime = Date.now() / 1000;
-      if(decodedRefreshToken?.exp < currentTime) {
+      if (decodedRefreshToken?.exp < currentTime) {
         resetAndNavigate('LoginScreen');
         Alert.alert("Session Expired, please login again");
-        return;
+        return false;
       }
 
-      if(decodedAccessToken?.exp < currentTime) {
+      if (decodedAccessToken?.exp < currentTime) {
         try {
-          
+
         } catch (error) {
           console.log(error);
           Alert.alert("There was an error");
-          return;
+          return false;
         }
       }
 
       resetAndNavigate('BottomTab');
-      return;
+      return true;
     }
 
     resetAndNavigate('LoginScreen');
 
-    return;
+    return false;
+  }
+
+  const handleNoUrlCase = (deepLinkType: string) => {
+    if (deepLinkType === 'RESUME') {
+      resetAndNavigate('BottomTab');
+    }
+  }
+
+  const handleUserCase = (deepLinkType: string, id: string) => {
+    if (deepLinkType === 'RESUME') {
+      resetAndNavigate('BottomTab');
+    }
+
+    navigate('UserProfileScreen', { username: id });
+  }
+
+  const handleDefaultCase = (deepLinkType: string) => {
+    if (deepLinkType === 'RESUME') {
+      resetAndNavigate('BottomTab');
+    }
+  }
+
+  const handleDeepLink = async (event: any, deepLinkType: string) => {
+    const tokenValid = await tokenCheck();
+    if (!tokenValid) return;
+
+    const { url } = event;
+    if (!url) {
+      handleNoUrlCase(deepLinkType);
+      return;
+    };
+    const { type, id } = extractTypeAndId(url);
+
+    switch (type) {
+      case 'reel':
+        await getReelById(id, deepLinkType);
+        break;
+      case 'user':
+        handleUserCase(deepLinkType, id);
+        break;
+      default:
+        handleDefaultCase(deepLinkType);
+        break;
+    }
   }
 
   useEffect(() => {
-    async function deeplinks() {
-      await tokenCheck();
-    }
+    Linking.getInitialURL().then((url) => {
+      handleDeepLink({ url }, 'CLOSE')
+      console.log(url);
+    });
 
-    deeplinks();
+    Linking.addEventListener('url', (event) => {
+      handleDeepLink(event, 'RESUME')
+      console.log(event);
+    })
+    // async function deeplinks() {
+    //   await tokenCheck();
+    // }
+
+    // deeplinks();
   }, [])
 
   useEffect(() => {
@@ -74,7 +129,7 @@ const SplashScreen: FC = () => {
       ])
     );
 
-    if(!isStop) {
+    if (!isStop) {
       breathingAnimation.start();
     }
 
@@ -91,7 +146,7 @@ const SplashScreen: FC = () => {
             width: '60%',
             height: '25%',
             resizeMode: 'contain',
-            transform: [{scale}]
+            transform: [{ scale }]
           }}
           source={Logo}
         />

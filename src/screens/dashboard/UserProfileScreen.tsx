@@ -51,6 +51,10 @@ const UserProfileScreen: FC = () => {
     );
   };
 
+  const handleShareProfile = () => {
+    console.log('share profile');
+  };
+  
   useEffect(() => {
     fetchUser();
   }, [userParam?.username]);

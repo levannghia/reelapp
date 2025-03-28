@@ -1,3 +1,18 @@
+import { StyleSheet, Text, View } from 'react-native'
+import React from 'react'
+
+const ReedemScreen = () => {
+  return (
+    <View>
+      <Text>ReedemScreen</Text>
+    </View>
+  )
+}
+
+export default ReedemScreen
+
+const styles = StyleSheet.create({})
+
 // import React, {FC, useEffect, useState} from 'react';
 // import {
 //   StyleSheet,

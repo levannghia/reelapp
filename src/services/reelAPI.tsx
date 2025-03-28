@@ -1,6 +1,7 @@
 import { appAxios } from "../constants/apiConfig";
 import { useLikeStore } from "../state/likeStore";
 import { useAuthStore } from "../state/userStore";
+import { navigate, resetAndNavigate } from "../utils/NavigationUtil";
 
 interface ReelStore {
     createReel: (data: any) => void;
@@ -68,3 +69,20 @@ export const fetchReel = async (data: fetchUserReel, type: string) => {
         return [];
     }
 }
+
+export const getReelById = async (id: string, deepLinkType: string) => {
+    try {
+      const res = await appAxios.get(`/reel/${id}`);
+      console.log(deepLinkType, id);
+      if (deepLinkType !== 'RESUME') {
+        resetAndNavigate('BottomTab');
+      }
+      navigate('ReelScrollScreen', {
+        data: [res.data],
+        index: 0,
+      });
+    } catch (error) {
+      console.log('FETCH REEL ERROR', error);
+      return [];
+    }
+  };
